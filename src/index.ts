@@ -1,11 +1,19 @@
-import express from "express";
-import { handleErrors, handleAsyncError } from "./middlewares/errors";
+import express, { Request } from "express";
+import { handleErrors } from "./middlewares/errors";
 import { ErrorHandler } from "./services/ErrorHandler";
-// import { PrismaClient } from "@prisma/client";
+import { Db } from "./services/Db";
+import userRoutes from "./routes/users";
+import { PrismaClient } from "@prisma/client";
 
 const app = express();
 const port = 3000;
-// const prisma = new PrismaClient();
+
+// Make primsa available on req object
+app.use((req: Request, res, next) => {
+  req.prisma = new PrismaClient();
+  req.db = Db.getInstance(req.prisma);
+  next();
+});
 
 // Handle uncaught exceptions
 process.on("uncaughtException", (err) => {
@@ -16,20 +24,15 @@ process.on("uncaughtException", (err) => {
 
 app.use(express.json());
 
-app.get(
-  "/test",
-  handleAsyncError(async (req, res, next) => {
-    console.log(process.env.NODE_ENV);
-    return next(new ErrorHandler("Test error", 500));
-    //   res.json({ msg: "hello, world" });
-  }),
-);
+// API Routes (v0.1)
+app.use("/api/v0.1", userRoutes);
 
 // Handle non-existent route errors
 app.all("*", (req, res, next) => {
   next(new ErrorHandler(`${req.originalUrl} route not found`, 404));
 });
 
+// Handle manually caught errors
 app.use(handleErrors);
 
 const server = app.listen(port, () => {
