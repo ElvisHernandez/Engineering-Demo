@@ -10,6 +10,9 @@ services:
     environment:
       DATABASE_URL: postgresql://prisma:prisma@db:5432/mydb?schema=public
       NODE_ENV: development
+      JWT_SECRET: SHHH_TEST_SECRET
+      JWT_EXPIRY: 7d
+      COOKIE_EXPIRY_TIME: 7
     volumes:
       - ./src:/usr/src/app/src
       - ./node_modules:/usr/src/app/node_modules

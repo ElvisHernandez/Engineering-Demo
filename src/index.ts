@@ -4,6 +4,7 @@ import { ErrorHandler } from "./services/ErrorHandler";
 import { Db } from "./services/Db";
 import userRoutes from "./routes/users";
 import { PrismaClient } from "@prisma/client";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const port = 3000;
@@ -22,6 +23,8 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
+// Middleware
+app.use(cookieParser());
 app.use(express.json());
 
 // API Routes (v0.1)
