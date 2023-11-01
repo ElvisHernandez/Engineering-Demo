@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 import userRoutes from "../routes/users";
 import btcAddressRoutes from "../routes/btcAddresseses";
 import { handleErrors } from "../middlewares/errors";
-import { isAuthenticated } from "../middlewares/auth";
 import { Db } from "../services/Db";
 import { ErrorHandler } from "../services/ErrorHandler";
 
@@ -32,12 +31,6 @@ app.use(express.json());
 // API Routes (v0.1)
 app.use("/api/v0.1", userRoutes);
 app.use("/api/v0.1", btcAddressRoutes);
-
-app.get("/test-auth-route", isAuthenticated, (req, res) => {
-  res.json({
-    message: "hello, world",
-  });
-});
 
 // Handle non-existent route errors
 app.all("*", (req, res, next) => {
