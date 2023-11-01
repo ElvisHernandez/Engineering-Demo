@@ -1,12 +1,12 @@
-import { input, password } from "@inquirer/prompts";
+import { input, password, select } from "@inquirer/prompts";
 import chalk from "chalk";
 import gradient from "gradient-string";
-import { AuthService } from "../services/AuthService";
+import { ApiClient } from "../services/ApiClient";
 
-const auth = new AuthService();
+const api = new ApiClient();
 
 const displayHelpText = () => {
-  const userEmail = auth.getUserEmail();
+  const userEmail = api.getUserEmail();
   const status = userEmail
     ? `logged in as ${gradient.passion(userEmail)}`
     : chalk.yellow("logged out");
@@ -18,32 +18,97 @@ const displayHelpText = () => {
         my-cli [command]
   
       Commands:
-        help        Display this help text
-        register    Register with email + password
-        login       Login with email + password
-        logout      Logout
+        help              Display this help text
+        register          Register with email + password
+        login             Login with email + password
+        logout            Logout
+        address           Add, remove, or fetch BTC addresses 
+        transactions      View BTC address transactions
         
-
       Status: (${status})
     `);
 };
 
 const register = async () => {
-  const email = await input({ message: "Enter your email" });
-  const pass = await password({ message: "Enter your password" });
+  const email = await input({ message: "Enter your email:" });
+  const pass = await password({ message: "Enter your password:" });
 
-  const user = await auth.register(email, pass);
+  const user = await api.register(email, pass);
 
   if (!user) console.log(user);
 };
 
 const login = async () => {
-  const email = await input({ message: "Enter your email" });
-  const pass = await password({ message: "Enter your password" });
+  const email = await input({ message: "Enter your email:" });
+  const pass = await password({ message: "Enter your password:" });
 
-  const user = await auth.login(email, pass);
+  const user = await api.login(email, pass);
 
   if (!user) console.log(user);
+};
+
+const handleAddressFlow = async () => {
+  const command = await select({
+    message: "Select a command",
+    choices: [
+      {
+        name: "Add",
+        value: "add",
+        description: "Add a new BTC Address",
+      },
+      {
+        name: "Remove",
+        value: "remove",
+        description: "Remove existing BTC Address",
+      },
+      {
+        name: "Fetch",
+        value: "fetch",
+        description: "Fetch BTC Address with stats",
+      },
+    ],
+  });
+
+  if (command === "add") {
+    const btcAddress = await input({ message: "Enter BTC address:" });
+    const res = await api.addAddress(btcAddress);
+
+    if (res.error) {
+      console.log(chalk.red(res.errMessage));
+    } else {
+      console.log(chalk.green("Successfully added BTC address"));
+    }
+  } else if (command === "remove") {
+    const addressIdToDelete = await input({
+      message: "What is the id of the address you wish to remove?",
+    });
+    const res = await api.removeAddress(parseInt(addressIdToDelete));
+
+    if (res.error) {
+      console.log(chalk.red("Address with that ID does not exist"));
+    } else {
+      console.log(chalk.green("Successfully removed BTC address"));
+    }
+  } else if (command === "fetch") {
+    const addresses = await api.getAllAddresses();
+
+    addresses.map((address) => {
+      console.log(`
+        ${chalk.magenta("ID")}: ${address.id}
+        ${chalk.magenta("Address")}: ${address.address}
+        ${chalk.magenta("Total Balance")}: ${
+          address.balance
+        } (${chalk.greenBright(address.balanceUSD)})
+        ${chalk.magenta("Total Received")}: ${
+          address.received
+        } (${chalk.greenBright(address.receivedUSD)})
+        ${chalk.magenta("Total Sent")}: ${address.sent} (${chalk.greenBright(
+          address.sentUSD,
+        )})
+        ${chalk.magenta("Total Transactions")}: ${address.transactions}
+      `);
+    });
+  }
 };
 
 (async () => {
@@ -53,16 +118,6 @@ const login = async () => {
   if (!args.length || argsSet.has("-h") || argsSet.has("--help")) {
     displayHelpText();
   }
-  //   const command = await select({
-  //     message: "Select a command",
-  //     choices: [
-  //       {
-  //         name: "help",
-  //         value: "help",
-  //         description: "Description on available commands and options",
-  //       },
-  //     ],
-  //   });
 
   const [command] = args;
 
@@ -79,8 +134,11 @@ const login = async () => {
       await login();
       break;
 
+    case "address":
+      await handleAddressFlow();
+      break;
     case "logout":
-      auth.logout();
+      api.logout();
       break;
     // Add other cases here for other commands
     default:
