@@ -42,9 +42,11 @@ Available commands. Address command actually has 3 nested commands
 ![](./static/cli-help.png)
 
 BTC Addresses
+
 ![](./static/cli-btc-addresses.png)
 
 BTC Address Transactions
+
 ![](./static/cli-btc-address-transactions.png)
 
 ## REST API DOCS
