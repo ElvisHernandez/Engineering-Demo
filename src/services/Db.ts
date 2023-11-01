@@ -12,7 +12,7 @@ export class Db {
     const jwtSecret = getEnvVar("JWT_SECRET");
     const jwtExpiry = getEnvVar("JWT_EXPIRY");
 
-    return jwt.sign({ userEmail }, jwtSecret, {
+    return jwt.sign({ email: userEmail }, jwtSecret, {
       expiresIn: jwtExpiry,
     });
   }

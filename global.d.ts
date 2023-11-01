@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 import { Db } from "./src/services/Db";
 
 declare global {
@@ -6,6 +6,7 @@ declare global {
     export interface Request {
       prisma: PrismaClient;
       db: Db;
+      user?: User;
     }
   }
 }

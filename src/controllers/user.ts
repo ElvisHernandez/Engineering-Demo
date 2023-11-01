@@ -33,6 +33,7 @@ export const registerUser = async (req: Request, res: Response) => {
   res.status(200).cookie("token", userToken, cookieOptions).json({
     success: true,
     message: "User registered",
+    token: userToken,
     data: user,
   });
 };
@@ -61,7 +62,7 @@ export const loginUser = async (req: Request, res: Response) => {
   res.status(200).cookie("token", userToken, cookieOptions).json({
     success: true,
     message: "User logged in",
-    data: {},
+    token: userToken,
   });
 };
 
