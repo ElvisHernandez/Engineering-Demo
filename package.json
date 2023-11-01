@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "server:dev": "nodemon --watch src --ext ts,tsx --exec ts-node src/entrypoints/server.ts",
-    "cli:dev": "ts-node src/entrypoints/cli.ts $@",
+    "cli:dev": "ts-node src/entrypoints/cli.ts",
     "build": "tsc",
     "serve": "node dist/index.js",
     "lint": "eslint 'src/**/*.{ts,js}'",

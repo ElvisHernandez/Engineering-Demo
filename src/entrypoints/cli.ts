@@ -15,7 +15,7 @@ const displayHelpText = () => {
     ${gradient.retro("Welcome to the Coin Tracker CLI Demo")}
 
       Usage:
-        my-cli [command]
+        npm run cli:dev -- [command] or yarn cli:dev [command]
   
       Commands:
         help              Display this help text
@@ -35,7 +35,11 @@ const register = async () => {
 
   const user = await api.register(email, pass);
 
-  if (!user) console.log(user);
+  if (user.error) {
+    console.log(chalk.red("Invalid email or password"));
+  } else {
+    console.log(chalk.green("Successfully registered user"));
+  }
 };
 
 const login = async () => {
@@ -44,7 +48,11 @@ const login = async () => {
 
   const user = await api.login(email, pass);
 
-  if (!user) console.log(user);
+  if (!user) {
+    console.log(chalk.red("Invalid email or password"));
+  } else {
+    console.log(chalk.green("Successfully logged in user"));
+  }
 };
 
 const handleAddressFlow = async () => {

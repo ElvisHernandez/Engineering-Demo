@@ -111,23 +111,31 @@ export class ApiClient {
   /***************************** Auth *****************************/
 
   async login(email: string, password: string) {
-    const { data } = await this.api.post("/login", {
-      email,
-      password,
-    });
+    try {
+      const { data } = await this.api.post("/login", {
+        email,
+        password,
+      });
 
-    this.persistAuthInfo(data.token, data.data.email);
-    return data;
+      this.persistAuthInfo(data.token, data.data.email);
+      return data;
+    } catch (e) {
+      return (e as AxiosError)?.response?.data;
+    }
   }
 
   async register(email: string, password: string) {
-    const { data } = await this.api.post("/register", {
-      email,
-      password,
-    });
+    try {
+      const { data } = await this.api.post("/register", {
+        email,
+        password,
+      });
 
-    this.persistAuthInfo(data.token, data.data.email);
-    return data;
+      this.persistAuthInfo(data.token, data.data.email);
+      return data;
+    } catch (e) {
+      return (e as AxiosError)?.response?.data;
+    }
   }
 
   persistAuthInfo(token: string, userEmail: string) {
