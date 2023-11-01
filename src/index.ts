@@ -5,6 +5,7 @@ import { Db } from "./services/Db";
 import userRoutes from "./routes/users";
 import { PrismaClient } from "@prisma/client";
 import cookieParser from "cookie-parser";
+import { isAuthenticated } from "./middlewares/auth";
 
 const app = express();
 const port = 3000;
@@ -29,6 +30,12 @@ app.use(express.json());
 
 // API Routes (v0.1)
 app.use("/api/v0.1", userRoutes);
+
+app.get("/test-auth-route", isAuthenticated, (req, res) => {
+  res.json({
+    message: "hello, world",
+  });
+});
 
 // Handle non-existent route errors
 app.all("*", (req, res, next) => {
