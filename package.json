@@ -5,13 +5,13 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "dev": "nodemon --watch src --ext ts,tsx --exec ts-node src/index.ts",
+    "server:dev": "nodemon --watch src --ext ts,tsx --exec ts-node src/entrypoints/server.ts",
     "build": "tsc",
     "serve": "node dist/index.js",
     "lint": "eslint 'src/**/*.{ts,js}'",
     "fix": "eslint --fix 'src/**/*.{ts,js}'",
     "format": "prettier --write 'src/**/*.{ts,js,json}'",
-    "prisma:migrate": "npx primsage migrate dev",
+    "prisma:migrate": "npx prisma migrate dev",
     "prisma:studio": "npx prisma studio"
   },
   "keywords": [],
@@ -35,7 +35,10 @@
   },
   "dependencies": {
     "@prisma/client": "^5.5.2",
+    "axios": "^1.6.0",
     "bcryptjs": "^2.4.3",
+    "bitcoinjs-lib": "^6.1.5",
+    "bottleneck": "^2.19.5",
     "cookie-parser": "^1.4.6",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",

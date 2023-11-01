@@ -11,15 +11,26 @@ export const handleErrors = (
 ) => {
   err.statusCode = err.statusCode || 500;
 
+  // handle bad btc address validation
+  if (err.message.includes("has no matching Script")) {
+    err = new ErrorHandler("Invalid BTC address. Please check format", 400);
+  }
+
+  // Bad request payload caused request to fail validation
   if (err instanceof ZodError) {
-    // Bad request payload caused request to fail
     err.statusCode = 400;
   }
 
   if (err instanceof PrismaClientKnownRequestError) {
     // Handle duplicate email error
-    if (err.code === "P2002") {
+    // @ts-ignore
+    if (err.meta?.target?.includes("email")) {
       err = new ErrorHandler(`User with email already exists`, 400);
+    }
+
+    // @ts-ignore
+    if (err.meta?.target?.includes("address")) {
+      err = new ErrorHandler(`Address already exists`, 400);
     }
   }
 

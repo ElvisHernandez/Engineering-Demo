@@ -24,7 +24,31 @@ model User {
   password String 
   resetPasswordToken String
   resetPasswordExpiry String
-  
+
+  addresses Address[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum AddressType {
+    BTC
+}
+
+model Address {
+
+    id Int @id @default(autoincrement())
+    address String @unique
+    type AddressType @default(BTC)
+    
+    received Float @default(0)
+    sent Float @default(0)
+    balance Float @default(0)
+    transactionsAmount Int @default(0)
+
+    userId Int
+    user User @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

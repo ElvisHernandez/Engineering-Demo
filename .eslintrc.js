@@ -9,6 +9,7 @@ module.exports = {
   ],
   rules: {
     "prettier/prettier": "error",
+    "@typescript-eslint/ban-ts-comment": "off",
   },
   env: {
     node: true,
