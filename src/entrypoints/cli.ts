@@ -1,4 +1,4 @@
-import { input, password, select } from "@inquirer/prompts";
+import { input, password, select, confirm } from "@inquirer/prompts";
 import chalk from "chalk";
 import gradient from "gradient-string";
 import { ApiClient } from "../services/ApiClient";
@@ -111,7 +111,60 @@ const handleAddressFlow = async () => {
   }
 };
 
-(async () => {
+const handleTransactionFlow = async () => {
+  const addressId = await input({ message: "Enter address ID:" });
+
+  const transactionsLimit = 5;
+  let transactionsOffset = 0;
+
+  const getTransactions = async () => {
+    const transactions = await api.getAddressTransactions(
+      addressId,
+      transactionsLimit,
+      transactionsOffset,
+    );
+
+    // @ts-ignore
+    if (transactions?.error) {
+      console.log(chalk.red("Error, please try again. Check your address ID."));
+      keepFetching = false;
+    } else {
+      // @ts-ignore
+      transactions?.map((transaction) => {
+        console.log(`
+           ${chalk.magenta("Transaction Hash:")}: ${transaction.hash}
+           ${chalk.magenta("Fee")}: ${transaction.fee} (${chalk.greenBright(
+             transaction.feeUSD,
+           )})
+           ${chalk.magenta("Result")}: ${
+             transaction.result
+           } (${chalk.greenBright(transaction.resultUSD)})
+           ${chalk.magenta("Balance")}: ${
+             transaction.balance
+           } (${chalk.greenBright(transaction.balanceUSD)})
+           ${chalk.magenta("Time")}: ${transaction.time}
+        `);
+      });
+
+      const fetchMore = await confirm({ message: "Fetch more transactions?" });
+
+      if (fetchMore) {
+        transactionsOffset += 5;
+        await getTransactions();
+      } else {
+        keepFetching = false;
+      }
+    }
+  };
+
+  let keepFetching = true;
+
+  while (keepFetching) {
+    await getTransactions();
+  }
+};
+
+const main = async () => {
   const args = process.argv.slice(2);
   const argsSet = new Set(args);
 
@@ -134,14 +187,21 @@ const handleAddressFlow = async () => {
       await login();
       break;
 
-    case "address":
-      await handleAddressFlow();
-      break;
     case "logout":
       api.logout();
       break;
-    // Add other cases here for other commands
+
+    case "address":
+      await handleAddressFlow();
+      break;
+
+    case "transactions":
+      await handleTransactionFlow();
+      break;
+
     default:
       console.log("Unknown command");
   }
-})();
+};
+
+main();

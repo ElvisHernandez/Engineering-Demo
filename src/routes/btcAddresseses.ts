@@ -3,6 +3,7 @@ import { isAuthenticated } from "../middlewares/auth";
 import {
   addBtcAddress,
   getAllBtcAddresses,
+  getBtcAddressTransactions,
   removeBtcAddress,
 } from "../controllers/btcAddress";
 import { handleAsyncError } from "../middlewares/errors";
@@ -23,5 +24,10 @@ router
 router
   .route("/btc/addresses/:addressId")
   .delete(isAuthenticated, handleAsyncError(removeBtcAddress));
+
+// Get transactions of a specific BTC address
+router
+  .route("/btc/addresses/:addressId/transactions")
+  .get(isAuthenticated, handleAsyncError(getBtcAddressTransactions));
 
 export default router;

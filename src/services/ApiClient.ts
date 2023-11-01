@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosError } from "axios";
 import fs from "fs";
 import path from "path";
 import { z } from "zod";
+import { TransactionSchema } from "./BtcAggregator";
 
 const AddressesSchema = z.array(
   z.object({
@@ -40,31 +41,17 @@ export class ApiClient {
 
   async getAllAddresses() {
     const { data } = await this.api.get("/btc/addresses");
-    // console.log("the thing: ", data);
     const addresses = AddressesSchema.parse(data.data);
-
-    const { data: exchangeRates } = await axios.get(
-      "https://blockchain.info/ticker",
-    );
-    const btcExchangeRate = exchangeRates.USD.last;
-
-    const formatter = new Intl.NumberFormat("en-US", {
-      maximumFractionDigits: 2,
-    });
-
-    const usdFormatter = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    });
+    const btcExchangeRate = await this.getBtcToUsdRate();
 
     const formattedAddresses = addresses.map((address) => ({
       id: address.id,
-      received: formatter.format(address.received) + " BTC",
-      sent: formatter.format(address.sent) + " BTC",
-      balance: formatter.format(address.balance) + " BTC",
-      receivedUSD: usdFormatter.format(address.received * btcExchangeRate),
-      sentUSD: usdFormatter.format(address.sent * btcExchangeRate),
-      balanceUSD: usdFormatter.format(address.balance * btcExchangeRate),
+      received: this.btcFormatter(address.received),
+      sent: this.btcFormatter(address.sent),
+      balance: this.btcFormatter(address.balance),
+      receivedUSD: this.usdFormatter(address.received * btcExchangeRate),
+      sentUSD: this.usdFormatter(address.sent * btcExchangeRate),
+      balanceUSD: this.usdFormatter(address.balance * btcExchangeRate),
       transactions: address.transactionsAmount,
       address: address.address,
     }));
@@ -87,6 +74,35 @@ export class ApiClient {
       const { data } = await this.api.delete(`/btc/addresses/${btcAddressId}`);
 
       return data;
+    } catch (e) {
+      return (e as AxiosError)?.response?.data;
+    }
+  }
+
+  async getAddressTransactions(
+    btcAddressId: string,
+    limit: number,
+    offset: number,
+  ) {
+    try {
+      const { data } = await this.api.get(
+        `/btc/addresses/${btcAddressId}/transactions?limit=${limit}&offset=${offset}`,
+      );
+      const btcExchangeRate = await this.getBtcToUsdRate();
+      const transactions = z.array(TransactionSchema).parse(data.data);
+
+      const formattedTransactions = transactions.map((transaction) => ({
+        ...transaction,
+        fee: transaction.fee + " BTC",
+        result: this.btcFormatter(transaction.result),
+        balance: this.btcFormatter(transaction.balance),
+        feeUSD: this.usdFormatter(transaction.fee * btcExchangeRate),
+        resultUSD: this.usdFormatter(transaction.result * btcExchangeRate),
+        balanceUSD: this.usdFormatter(transaction.balance * btcExchangeRate),
+        time: new Date(transaction.time * 1000).toLocaleString(),
+      }));
+
+      return formattedTransactions;
     } catch (e) {
       return (e as AxiosError)?.response?.data;
     }
@@ -148,5 +164,33 @@ export class ApiClient {
     if (fs.existsSync(this.userTokenPath)) {
       fs.rmSync(this.userTokenPath);
     }
+  }
+
+  /***************************** Utils *****************************/
+
+  async getBtcToUsdRate() {
+    const { data: exchangeRates } = await axios.get(
+      "https://blockchain.info/ticker",
+    );
+    const btcExchangeRate = exchangeRates.USD.last;
+
+    return btcExchangeRate;
+  }
+
+  btcFormatter(btc: number) {
+    const formatter = new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: 2,
+    });
+
+    return formatter.format(btc) + " BTC";
+  }
+
+  usdFormatter(usd: number) {
+    const usdFormatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
+
+    return usdFormatter.format(usd);
   }
 }

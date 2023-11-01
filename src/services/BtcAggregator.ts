@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from "axios";
 import Bottleneck from "bottleneck";
 import { z } from "zod";
 
-const TransactionSchema = z.object({
+export const TransactionSchema = z.object({
   hash: z.string(),
   fee: z.number(),
   time: z.number(),
@@ -38,7 +38,7 @@ export class BtcAggregator {
   }
 
   async getAddressRecentStats() {
-    const { data } = await limiter.schedule(() => this.api.get("?limit=5"));
+    const { data } = await limiter.schedule(() => this.api.get("?limit=0"));
 
     const { final_balance, n_tx, total_received, total_sent, txs } =
       AddressStatsSchema.parse(data);
@@ -50,5 +50,20 @@ export class BtcAggregator {
       sent: total_sent / SATOSHI,
       transactions: txs,
     };
+  }
+
+  async getAddressTransctions(limit: string | number, offset: string | number) {
+    const { data } = await limiter.schedule(() =>
+      this.api.get(`?limit=${limit}&offset=${offset}`),
+    );
+
+    const transactions = z.array(TransactionSchema).parse(data.txs);
+
+    return transactions.map((transaction) => ({
+      ...transaction,
+      fee: transaction.fee / SATOSHI,
+      result: transaction.result / SATOSHI,
+      balance: transaction.balance / SATOSHI,
+    }));
   }
 }

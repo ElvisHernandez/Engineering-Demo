@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { z } from "zod";
 import { address as btcValidator } from "bitcoinjs-lib";
 import { BtcAggregator } from "../services/BtcAggregator";
+import { ErrorHandler } from "../services/ErrorHandler";
 
 export const getAllBtcAddresses = async (req: Request, res: Response) => {
   const addresses = await req.prisma.address.findMany({
@@ -55,5 +56,32 @@ export const removeBtcAddress = async (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: "Successfully removed address",
+  });
+};
+
+const GetBtcAddressTransactionsSchema = RemoveBtcAddressSchema;
+
+export const getBtcAddressTransactions = async (
+  req: Request,
+  res: Response,
+) => {
+  const { limit = 5, offset = 0 } = req.query;
+  const { addressId } = GetBtcAddressTransactionsSchema.parse(req.params);
+
+  const address = await req.prisma.address.findUnique({
+    where: { id: addressId },
+  });
+
+  if (!address) throw new ErrorHandler(`Invalid address id`, 400);
+
+  const aggregator = new BtcAggregator(address.address);
+  const transactions = await aggregator.getAddressTransctions(
+    limit as string | number,
+    offset as string | number,
+  );
+
+  res.status(200).json({
+    success: true,
+    data: transactions,
   });
 };
