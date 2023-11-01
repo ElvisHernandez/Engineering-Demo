@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import Bottleneck from "bottleneck";
 import { z } from "zod";
 
 const TransactionSchema = z.object({
@@ -20,6 +21,12 @@ const AddressStatsSchema = z.object({
 // divide blockchain api quantities by this to receive quantities in BTC
 const SATOSHI = 100_000_000;
 
+// rate limit api to max of 1 request per second
+const limiter = new Bottleneck({
+  maxConcurrent: 1,
+  minTime: 1000,
+});
+
 export class BtcAggregator {
   private api: AxiosInstance;
 
@@ -31,9 +38,7 @@ export class BtcAggregator {
   }
 
   async getAddressRecentStats() {
-    console.log("In the  getAddressRecentStats function");
-
-    const { data } = await this.api.get("?limit=5");
+    const { data } = await limiter.schedule(() => this.api.get("?limit=5"));
 
     const { final_balance, n_tx, total_received, total_sent, txs } =
       AddressStatsSchema.parse(data);

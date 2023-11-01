@@ -1,12 +1,12 @@
 import express, { Request } from "express";
-import { handleErrors } from "./middlewares/errors";
-import { ErrorHandler } from "./services/ErrorHandler";
-import { Db } from "./services/Db";
 import { PrismaClient } from "@prisma/client";
 import cookieParser from "cookie-parser";
-import { isAuthenticated } from "./middlewares/auth";
-import userRoutes from "./routes/users";
-import btcAddressRoutes from "./routes/btcAddresseses";
+import userRoutes from "../routes/users";
+import btcAddressRoutes from "../routes/btcAddresseses";
+import { handleErrors } from "../middlewares/errors";
+import { isAuthenticated } from "../middlewares/auth";
+import { Db } from "../services/Db";
+import { ErrorHandler } from "../services/ErrorHandler";
 
 const app = express();
 const port = 3000;
