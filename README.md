@@ -1,4 +1,4 @@
-# Coin Tracker Demo
+# Engineering Demo
 
 ## Setup local environment
 
